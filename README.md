@@ -1,4 +1,6 @@
-# @mapbox/mapbox-gl-draw
+# ns-mapbox-gl-draw
+
+#Inspired by [!@mapbox/mapbox-gl-draw](https://github.com/mapbox/mapbox-gl-draw.git)
 
 [![Build Status](https://travis-ci.org/mapbox/mapbox-gl-draw.svg?branch=main)](https://travis-ci.org/mapbox/mapbox-gl-draw)
 
@@ -11,7 +13,7 @@ Adds support for drawing and editing features on [mapbox-gl.js](https://www.mapb
 ### Installing
 
 ```
-npm install @mapbox/mapbox-gl-draw
+npm install ns-mapbox-gl-draw
 ```
 
 Draw ships with CSS, make sure you include it in your build.
@@ -24,7 +26,7 @@ Draw ships with CSS, make sure you include it in your build.
 
 ```js
 import mapboxgl from 'mapbox-gl';
-import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import MapboxDraw from "ns-mapbox-gl-draw";
 ```
 
 **When using a CDN**
@@ -37,7 +39,7 @@ import MapboxDraw from "@mapbox/mapbox-gl-draw";
 
 **When using modules**
  ```js
-import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
+import 'ns-mapbox-gl-draw/dist/mapbox-gl-draw.css'
  ```
 
 **When using CDN**

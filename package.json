@@ -1,8 +1,8 @@
 {
-  "name": "@mapbox/mapbox-gl-draw",
+  "name": "ns-mapbox-gl-draw",
   "version": "1.4.3",
   "description": "A drawing component for Mapbox GL JS",
-  "homepage": "https://github.com/mapbox/mapbox-gl-draw",
+  "homepage": "https://github.com/DinakaranS/ns-mapbox-gl-draw",
   "author": "mapbox",
   "license": "ISC",
   "main": "dist/mapbox-gl-draw.js",
@@ -30,7 +30,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/mapbox/mapbox-gl-draw.git"
+    "url": "git://github.com/ns-mapbox-gl-draw.git"
   },
   "keywords": [
     "webgl",
@@ -39,7 +39,7 @@
     "drawing"
   ],
   "bugs": {
-    "url": "https://github.com/mapbox/mapbox-gl-draw/issues"
+    "url": "https://github.com/ns-mapbox-gl-draw/issues"
   },
   "nyc": {
     "sourceMap": false,
