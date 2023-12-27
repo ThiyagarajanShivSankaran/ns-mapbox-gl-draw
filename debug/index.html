@@ -9,7 +9,7 @@
   <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
   <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js'></script>
   <link href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css' rel='stylesheet'>
-  <link href='/dist/mapbox-gl-draw.css' rel='stylesheet' />
+  <link href='./mapbox-gl-draw.css' rel='stylesheet' />
   <style>
     body { margin:0; padding:0; }
     html, body, #map { height: 100%; }
@@ -50,9 +50,9 @@
   <button id='removeBtn'>remove draw</button>
   <button id='flipStyleBtn'>change style</button>
 </div>
-<script src='/debug/access_token_generated.js'></script>
-<script src='/dist/mapbox-gl-draw-unminified.js'></script>
-<script src='/debug/app.js'></script>
+<script src='./access_token_generated.js'></script>
+<script src='./mapbox-gl-draw-unminified.js'></script>
+<script src='./app.js'></script>
 <script type='text/javascript'>
 // Adds in the FPS graph to the top of the page.
 (function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();stats.domElement.style.cssText='position:fixed;right: 500px;top:0;z-index:10000';document.body.appendChild(stats.domElement);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//rawgit.com/mrdoob/stats.js/master/build/stats.min.js';document.head.appendChild(script);})();

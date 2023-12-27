@@ -84,7 +84,7 @@ map.on('load', () => {
   // Jump into draw point mode via a custom UI element
   const startPoint = document.getElementById('start-point');
   startPoint.onclick = function() {
-    Draw.changeMode('draw_point');
+    Draw.changeMode('draw_rectangle');
   };
 
   // Jump into draw line mode via a custom UI element
