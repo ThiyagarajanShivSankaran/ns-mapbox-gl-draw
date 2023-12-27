@@ -7,6 +7,7 @@ import draw_line_string from './draw_line_string';
 import draw_circle from './draw_circle';
 import draw_drag_circle from './draw_drag_circle';
 import draw_rectangle from './draw_rectangle';
+import draw_rotate from './draw_rotate';
 
 export default {
     simple_select,
@@ -16,5 +17,6 @@ export default {
     draw_line_string,
     draw_circle,
     draw_drag_circle,
-    draw_rectangle
+    draw_rectangle,
+    draw_rotate
 };

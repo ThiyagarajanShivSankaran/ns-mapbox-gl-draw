@@ -90,7 +90,7 @@ map.on('load', () => {
   // Jump into draw line mode via a custom UI element
   const startLine = document.getElementById('start-line');
   startLine.onclick = function() {
-    Draw.changeMode('draw_line_string');
+    Draw.changeMode('draw_rotate');
   };
 
   // Jump into draw polygon mode via a custom UI element

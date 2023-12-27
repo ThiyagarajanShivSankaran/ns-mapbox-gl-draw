@@ -5509,6 +5509,406 @@ var DrawRectangle = {
     }
 };
 
+/**
+ * Callback for coordEach
+ *
+ * @callback coordEachCallback
+ * @param {Array<number>} currentCoord The current coordinate being processed.
+ * @param {number} coordIndex The current index of the coordinate being processed.
+ * @param {number} featureIndex The current index of the Feature being processed.
+ * @param {number} multiFeatureIndex The current index of the Multi-Feature being processed.
+ * @param {number} geometryIndex The current index of the Geometry being processed.
+ */
+
+/**
+ * Iterate over coordinates in any GeoJSON object, similar to Array.forEach()
+ *
+ * @name coordEach
+ * @param {FeatureCollection|Feature|Geometry} geojson any GeoJSON object
+ * @param {Function} callback a method that takes (currentCoord, coordIndex, featureIndex, multiFeatureIndex)
+ * @param {boolean} [excludeWrapCoord=false] whether or not to include the final coordinate of LinearRings that wraps the ring in its iteration.
+ * @returns {void}
+ * @example
+ * var features = turf.featureCollection([
+ *   turf.point([26, 37], {"foo": "bar"}),
+ *   turf.point([36, 53], {"hello": "world"})
+ * ]);
+ *
+ * turf.coordEach(features, function (currentCoord, coordIndex, featureIndex, multiFeatureIndex, geometryIndex) {
+ *   //=currentCoord
+ *   //=coordIndex
+ *   //=featureIndex
+ *   //=multiFeatureIndex
+ *   //=geometryIndex
+ * });
+ */
+function coordEach(geojson, callback, excludeWrapCoord) {
+  // Handles null Geometry -- Skips this GeoJSON
+  if (geojson === null) { return; }
+  var j,
+    k,
+    l,
+    geometry,
+    stopG,
+    coords,
+    geometryMaybeCollection,
+    wrapShrink = 0,
+    coordIndex = 0,
+    isGeometryCollection,
+    type = geojson.type,
+    isFeatureCollection = type === "FeatureCollection",
+    isFeature = type === "Feature",
+    stop = isFeatureCollection ? geojson.features.length : 1;
+
+  // This logic may look a little weird. The reason why it is that way
+  // is because it's trying to be fast. GeoJSON supports multiple kinds
+  // of objects at its root: FeatureCollection, Features, Geometries.
+  // This function has the responsibility of handling all of them, and that
+  // means that some of the `for` loops you see below actually just don't apply
+  // to certain inputs. For instance, if you give this just a
+  // Point geometry, then both loops are short-circuited and all we do
+  // is gradually rename the input until it's called 'geometry'.
+  //
+  // This also aims to allocate as few resources as possible: just a
+  // few numbers and booleans, rather than any temporary arrays as would
+  // be required with the normalization approach.
+  for (var featureIndex = 0; featureIndex < stop; featureIndex++) {
+    geometryMaybeCollection = isFeatureCollection
+      ? geojson.features[featureIndex].geometry
+      : isFeature
+      ? geojson.geometry
+      : geojson;
+    isGeometryCollection = geometryMaybeCollection
+      ? geometryMaybeCollection.type === "GeometryCollection"
+      : false;
+    stopG = isGeometryCollection
+      ? geometryMaybeCollection.geometries.length
+      : 1;
+
+    for (var geomIndex = 0; geomIndex < stopG; geomIndex++) {
+      var multiFeatureIndex = 0;
+      var geometryIndex = 0;
+      geometry = isGeometryCollection
+        ? geometryMaybeCollection.geometries[geomIndex]
+        : geometryMaybeCollection;
+
+      // Handles null Geometry -- Skips this geometry
+      if (geometry === null) { continue; }
+      coords = geometry.coordinates;
+      var geomType = geometry.type;
+
+      wrapShrink =
+        excludeWrapCoord &&
+        (geomType === "Polygon" || geomType === "MultiPolygon")
+          ? 1
+          : 0;
+
+      switch (geomType) {
+        case null:
+          break;
+        case "Point":
+          if (
+            callback(
+              coords,
+              coordIndex,
+              featureIndex,
+              multiFeatureIndex,
+              geometryIndex
+            ) === false
+          )
+            { return false; }
+          coordIndex++;
+          multiFeatureIndex++;
+          break;
+        case "LineString":
+        case "MultiPoint":
+          for (j = 0; j < coords.length; j++) {
+            if (
+              callback(
+                coords[j],
+                coordIndex,
+                featureIndex,
+                multiFeatureIndex,
+                geometryIndex
+              ) === false
+            )
+              { return false; }
+            coordIndex++;
+            if (geomType === "MultiPoint") { multiFeatureIndex++; }
+          }
+          if (geomType === "LineString") { multiFeatureIndex++; }
+          break;
+        case "Polygon":
+        case "MultiLineString":
+          for (j = 0; j < coords.length; j++) {
+            for (k = 0; k < coords[j].length - wrapShrink; k++) {
+              if (
+                callback(
+                  coords[j][k],
+                  coordIndex,
+                  featureIndex,
+                  multiFeatureIndex,
+                  geometryIndex
+                ) === false
+              )
+                { return false; }
+              coordIndex++;
+            }
+            if (geomType === "MultiLineString") { multiFeatureIndex++; }
+            if (geomType === "Polygon") { geometryIndex++; }
+          }
+          if (geomType === "Polygon") { multiFeatureIndex++; }
+          break;
+        case "MultiPolygon":
+          for (j = 0; j < coords.length; j++) {
+            geometryIndex = 0;
+            for (k = 0; k < coords[j].length; k++) {
+              for (l = 0; l < coords[j][k].length - wrapShrink; l++) {
+                if (
+                  callback(
+                    coords[j][k][l],
+                    coordIndex,
+                    featureIndex,
+                    multiFeatureIndex,
+                    geometryIndex
+                  ) === false
+                )
+                  { return false; }
+                coordIndex++;
+              }
+              geometryIndex++;
+            }
+            multiFeatureIndex++;
+          }
+          break;
+        case "GeometryCollection":
+          for (j = 0; j < geometry.geometries.length; j++)
+            { if (
+              coordEach(geometry.geometries[j], callback, excludeWrapCoord) ===
+              false
+            )
+              { return false; } }
+          break;
+        default:
+          throw new Error("Unknown Geometry Type");
+      }
+    }
+  }
+}
+
+/**
+ * Takes one or more features and calculates the centroid using the mean of all vertices.
+ * This lessens the effect of small islands and artifacts when calculating the centroid of a set of polygons.
+ *
+ * @name centroid
+ * @param {GeoJSON} geojson GeoJSON to be centered
+ * @param {Object} [options={}] Optional Parameters
+ * @param {Object} [options.properties={}] an Object that is used as the {@link Feature}'s properties
+ * @returns {Feature<Point>} the centroid of the input features
+ * @example
+ * var polygon = turf.polygon([[[-81, 41], [-88, 36], [-84, 31], [-80, 33], [-77, 39], [-81, 41]]]);
+ *
+ * var centroid = turf.centroid(polygon);
+ *
+ * //addToMap
+ * var addToMap = [polygon, centroid]
+ */
+function centroid(geojson, options) {
+    if (options === void 0) { options = {}; }
+    var xSum = 0;
+    var ySum = 0;
+    var len = 0;
+    coordEach(geojson, function (coord) {
+        xSum += coord[0];
+        ySum += coord[1];
+        len++;
+    }, true);
+    return point([xSum / len, ySum / len], options.properties);
+}
+
+// http://en.wikipedia.org/wiki/Haversine_formula
+// http://www.movable-type.co.uk/scripts/latlong.html
+/**
+ * Takes two {@link Point|points} and finds the geographic bearing between them,
+ * i.e. the angle measured in degrees from the north line (0 degrees)
+ *
+ * @name bearing
+ * @param {Coord} start starting Point
+ * @param {Coord} end ending Point
+ * @param {Object} [options={}] Optional parameters
+ * @param {boolean} [options.final=false] calculates the final bearing if true
+ * @returns {number} bearing in decimal degrees, between -180 and 180 degrees (positive clockwise)
+ * @example
+ * var point1 = turf.point([-75.343, 39.984]);
+ * var point2 = turf.point([-75.534, 39.123]);
+ *
+ * var bearing = turf.bearing(point1, point2);
+ *
+ * //addToMap
+ * var addToMap = [point1, point2]
+ * point1.properties['marker-color'] = '#f00'
+ * point2.properties['marker-color'] = '#0f0'
+ * point1.properties.bearing = bearing
+ */
+function bearing(start, end, options) {
+    if (options === void 0) { options = {}; }
+    // Reverse calculation
+    if (options.final === true) {
+        return calculateFinalBearing(start, end);
+    }
+    var coordinates1 = getCoord(start);
+    var coordinates2 = getCoord(end);
+    var lon1 = degreesToRadians(coordinates1[0]);
+    var lon2 = degreesToRadians(coordinates2[0]);
+    var lat1 = degreesToRadians(coordinates1[1]);
+    var lat2 = degreesToRadians(coordinates2[1]);
+    var a = Math.sin(lon2 - lon1) * Math.cos(lat2);
+    var b = Math.cos(lat1) * Math.sin(lat2) -
+        Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
+    return radiansToDegrees(Math.atan2(a, b));
+}
+/**
+ * Calculates Final Bearing
+ *
+ * @private
+ * @param {Coord} start starting Point
+ * @param {Coord} end ending Point
+ * @returns {number} bearing
+ */
+function calculateFinalBearing(start, end) {
+    // Swap start & end
+    var bear = bearing(end, start);
+    bear = (bear + 180) % 360;
+    return bear;
+}
+
+// import { EventEmitter } from "events";
+
+// const emitter = new EventEmitter();
+
+var RotateMode = {
+
+    rotatestart: function(selectedFeature,originalCenter) {},
+    rotating: function(selectedFeature,originalCenter,lastMouseDown) {},
+    rotateend: function(selectedFeature) {},
+
+    onSetup: function(opts) {
+        var state = {};
+
+        // emitter.addListener('rotatestart',function() {
+        //     this.rotatestart(state.selectedFeature,state.originalCenter)
+        // }.bind(this));
+        // emitter.addListener('rotating', function() {
+        //     this.rotating(state.selectedFeature,state.originalCenter,state.lastMouseDownLngLat)
+        // }.bind(this));
+        // emitter.addListener('rotateend', function() {
+        //     this.rotateend(state.selectedFeature,state.lastMouseDownLngLat)
+        // }.bind(this));
+
+        state.selectedFeature = opts.selectedFeature || false;
+        state.lastMouseDownLngLat = false;
+        state.originalCenter = false;
+        state.mode = 'rotate' ;
+        return state;
+    },
+
+    onMouseDown: function(state, e) {
+        if(e.featureTarget) {
+            if(this._ctx.api.get(e.featureTarget.properties.id)) {
+                e.target['dragPan'].disable();
+                state.selectedFeature = this._ctx.api.get(e.featureTarget.properties.id);
+                state.originalCenter = centroid(e.featureTarget);
+                state.originalFeature = e.featureTarget;
+                // emitter.emit('rotatestart');
+            }
+        }
+        return state;
+    },
+
+    toDisplayFeatures: function(state, geojson, display) {
+        display(geojson);
+    },
+
+    onDrag: function(state, e) {
+        if(state.selectedFeature&&state.mode) {
+            if(state.mode==='rotate') {
+                state.lastMouseDownLngLat = {lng:e.lngLat.lng, lat: e.lngLat.lat};
+                var draggedBearing = bearing(state.originalCenter, [e.lngLat.lng, e.lngLat.lat]);
+                var rotatedCoords = [];
+                switch (state.originalFeature.properties['meta:type']) {
+                    case 'Point':
+                        break;
+                    case 'LineString':
+                        state.originalFeature.geometry.coordinates.forEach(function(coords,index) {
+                            var distanceFromCenter = distance(state.originalCenter, coords);
+                            var bearingFromCenter = bearing(state.originalCenter, coords);
+                            var newPoint = destination(state.originalCenter, distanceFromCenter, bearingFromCenter + draggedBearing);
+                            rotatedCoords.push(newPoint.geometry.coordinates);
+                        });
+                        break;
+                    case 'Polygon':
+                        var polyCoords = [];
+                        state.originalFeature.geometry.coordinates[0].forEach(function(coords,index) {
+                            var distanceFromCenter = distance(state.originalCenter, coords);
+                            var bearingFromCenter = bearing(state.originalCenter, coords);
+                            var newPoint = destination(state.originalCenter, distanceFromCenter, bearingFromCenter + draggedBearing);
+                            polyCoords.push(newPoint.geometry.coordinates);
+                        });
+                        rotatedCoords.push(polyCoords);
+                        break;
+                    case 'MultiLineString':
+                        var multipolys = [];
+                        state.originalFeature.geometry.coordinates.forEach(function(polygon,index) {
+                            var polyCoords = [];
+                            polygon.forEach(function(coords,index) {
+                                var distanceFromCenter = distance(state.originalCenter, coords);
+                                var bearingFromCenter = bearing(state.originalCenter, coords);
+                                var newPoint = destination(state.originalCenter, distanceFromCenter, bearingFromCenter + draggedBearing);
+                                polyCoords.push(newPoint.geometry.coordinates);
+                            });
+                            multipolys.push(polyCoords);
+                        });
+                        rotatedCoords = multipolys;
+                        break;
+                    case 'MultiPolygon':
+                        var multipolys = [];
+                        state.originalFeature.geometry.coordinates.forEach(function(polygon,index) {
+                            var polyCoords = [];
+                            polygon.forEach(function(polygonHoles,index) {
+                                var polyHoleCoords = [];
+                                polygonHoles.forEach(function(coords,index) {
+                                    var distanceFromCenter = distance(state.originalCenter, coords);
+                                    var bearingFromCenter = bearing(state.originalCenter, coords);
+                                    var newPoint = destination(state.originalCenter, distanceFromCenter, bearingFromCenter + draggedBearing);
+                                    polyHoleCoords.push(newPoint.geometry.coordinates);
+                                });
+                                polyCoords.push(polyHoleCoords);
+                            });
+                            multipolys.push(polyCoords);
+                        });
+                        rotatedCoords = multipolys;
+                        break;
+                    default:
+                        return;
+                }
+               //  emitter.emit('rotating');
+                var newFeature = state.selectedFeature;
+                newFeature.geometry.coordinates = rotatedCoords;
+                this._ctx.api.add(newFeature);
+            }
+        }
+    },
+
+    onMouseUp: function(state, e) {
+        e.target['dragPan'].enable();
+        // emitter.emit('rotateend');
+        state.selectedFeature = false;
+        state.lastMouseDownLngLat = false;
+        state.originalCenter = false;
+        return state;
+    }
+};
+
 var modes = {
     simple_select: SimpleSelect,
     direct_select: DirectSelect,
@@ -5517,7 +5917,8 @@ var modes = {
     draw_line_string: DrawLineString,
     draw_circle: CircleMode,
     draw_drag_circle: DragCircleMode,
-    draw_rectangle: DrawRectangle
+    draw_rectangle: DrawRectangle,
+    draw_rotate: RotateMode
 };
 
 var defaultOptions = {
