@@ -10,6 +10,7 @@ import draw_rectangle from './draw_rectangle';
 import draw_rotate from './draw_rotate';
 import draw_text from './draw_text';
 import draw_marker from './draw_marker'
+import draw_line_arrow from './draw_line_arrow'
 
 export default {
     simple_select,
@@ -22,5 +23,6 @@ export default {
     draw_rectangle,
     draw_rotate,
     draw_text,
-    draw_marker
+    draw_marker,
+    draw_line_arrow
 };

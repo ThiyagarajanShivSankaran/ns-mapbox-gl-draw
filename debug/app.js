@@ -41,6 +41,26 @@ map.addControl(Draw, 'bottom-right');
 
 map.on('load', () => {
 
+  map.loadImage('https://geoviewer.io/img/arrow.png', (error, image) => {
+    if (error) {
+      console.log(error);
+      return;
+    }
+    map.addImage('gl-draw-arrow-icon', image, {
+      sdf: 'true'
+    })
+  });
+
+  map.loadImage('https://geoviewer.io/img/ns_marker.png', (error, image) => {
+    if (error) {
+      console.log(error);
+      return;
+    }
+    map.addImage('gl-draw-ns-marker', image, {
+      sdf: 'true'
+    })
+  });
+
   // Add Draw to the map if it is inactive
   const addButton = document.getElementById('addBtn');
   addButton.onclick = function() {
@@ -96,7 +116,7 @@ map.on('load', () => {
   // Jump into draw polygon mode via a custom UI element
   const startPolygon = document.getElementById('start-polygon');
   startPolygon.onclick = function() {
-    Draw.changeMode('draw_polygon');
+    Draw.changeMode('draw_line_arrow');
   };
 
   // Jump into static mode via a custom UI element

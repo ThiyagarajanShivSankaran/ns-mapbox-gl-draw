@@ -2602,8 +2602,8 @@ var styles = [
             ['==', '$type', 'Point'],
             ['==', 'active', 'true'],
             ['!=', 'meta', 'midpoint'],
-            ['!has', 'user_text'],
-            ['!has', 'user_icon']
+            ['!has', 'text'],
+            ['!has', 'icon']
         ],
         'paint': {
             'circle-radius': 7,
@@ -2617,8 +2617,8 @@ var styles = [
             ['==', '$type', 'Point'],
             ['!=', 'meta', 'midpoint'],
             ['==', 'active', 'true'],
-            ['!has', 'user_text'],
-            ['!has', 'user_icon']
+            ['!has', 'text'],
+            ['!has', 'icon']
         ],
         'paint': {
             'circle-radius': 5,
@@ -2672,7 +2672,51 @@ var styles = [
     },
 
     {
-        id: 'drawmarker-active',
+        id: 'gl-draw-point-arrow-inactive',
+        type: 'symbol',
+        filter: ['all',
+            ['has', 'user_bearing'] ],
+        layout: {
+            'icon-image': 'gl-draw-arrow-icon',
+            'icon-size': 0.04,
+            'icon-rotate': {
+                type: 'identity',
+                property: 'user_bearing',
+                default: 0
+            },
+            'icon-anchor': 'top',
+            'icon-rotation-alignment': 'map',
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': false,
+        },
+        ignore: true,
+    },
+    {
+        id: 'gl-draw-point-arrow-active',
+        type: 'symbol',
+        filter: ['all', ['==', 'meta', 'arrowPosition']],
+        layout: {
+            'icon-image': 'gl-draw-arrow-icon',
+            'icon-size': 0.07,
+            'icon-rotate': {
+                type: 'identity',
+                property: 'bearing',
+                default: 0
+            },
+            'icon-anchor': 'top',
+            'icon-rotation-alignment': 'map',
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': false,
+        },
+        paint: {
+            'icon-color': H_COLOR,
+            'icon-opacity': 1,
+            'icon-halo-color': '#FFF'
+        }
+    },
+
+    {
+        id: 'gl-draw-marker-active',
         type: 'symbol',
         filter: [
             'all',
@@ -2680,7 +2724,7 @@ var styles = [
             ['has', 'user_icon'], // Ensure the feature has an icon field
             ['==', 'active', 'true'] ],
         layout: {
-            'icon-image': ['get', 'user_icon'], // Dynamically get the icon image from the feature's properties
+            'icon-image': ['get', 'icon'], // Dynamically get the icon image from the feature's properties
             'icon-size': 2, // Larger icon size for active markers
         },
         paint: {
@@ -2691,7 +2735,7 @@ var styles = [
     },
 
     {
-        id: 'drawmarker-cold',
+        id: 'gl-draw-marker-inactive',
         type: 'symbol',
         filter: [
             'all',
@@ -2710,7 +2754,7 @@ var styles = [
     },
 
     {
-        id: 'drawtext-active',
+        id: 'gl-draw-text-active',
         type: 'symbol',
         filter: [
             'all',
@@ -2719,7 +2763,7 @@ var styles = [
             ['==', 'active', 'true'] ],
         layout: {
             'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-            'text-field': ['get', 'user_text'],
+            'text-field': ['get', 'text'],
             'text-size': 14,
             'text-allow-overlap': true,
             'text-ignore-placement': false,
@@ -2735,7 +2779,7 @@ var styles = [
     },
 
     {
-        id: 'drawtext-cold',
+        id: 'gl-draw-text-inactive',
         type: 'symbol',
         filter: [
             'all',
@@ -2757,8 +2801,7 @@ var styles = [
             'text-halo-color': '#fff',
             'text-halo-width': 1,
         }
-    }
-];
+    } ];
 
 function isOfMetaType(type) {
   return function(e) {
@@ -6115,7 +6158,8 @@ DrawText.onKeyUp = function(state, e) {
 
 var DrawMarker = {};
 
-DrawMarker.onSetup = function() {
+DrawMarker.onSetup = function(options) {
+    this.icon = (options && options.icon) || 'gl-draw-ns-marker';
     var point = this.newFeature({
         type: geojsonTypes.FEATURE,
         properties: {},
@@ -6146,7 +6190,7 @@ DrawMarker.stopDrawingAndRemove = function(state) {
 DrawMarker.onTap = DrawMarker.onClick = function(state, e) {
     this.updateUIClasses({ mouse: cursors.MOVE });
     state.point.updateCoordinate('', e.lngLat.lng, e.lngLat.lat);
-    state.point.properties.icon = 'marker-15';
+    state.point.properties.icon = this.icon;
     this.map.fire(events$1.CREATE, {
         features: [state.point.toGeoJSON()]
     });
@@ -6175,6 +6219,55 @@ DrawMarker.onKeyUp = function(state, e) {
     }
 };
 
+function createArrowVertex(parentId, currentVertexPosition, coordinates, selected) {
+    var rotation = bearing(coordinates[currentVertexPosition - 1], coordinates[currentVertexPosition]);
+    return {
+        type: geojsonTypes.FEATURE,
+        properties: {
+            meta: 'arrowPosition',
+            parent: parentId,
+            bearing: rotation || 0,
+            active: (selected) ? activeStates.ACTIVE : activeStates.INACTIVE
+        },
+        geometry: {
+            type: geojsonTypes.POINT,
+            coordinates: coordinates
+        }
+    };
+}
+
+var DrawLineArrow = Object.assign({}, DrawLineString);
+DrawLineArrow.onKeyUp = function (state, e) {
+    if (e.keyCode === 13) { // Enter key ends the line
+        this.changeMode('simple_select');
+    }
+};
+
+DrawLineArrow.toDisplayFeatures = function (state, geojson, display) {
+    var isActiveLine = geojson.properties.id === state.line.id;
+    geojson.properties.active = (isActiveLine) ? activeStates.ACTIVE : activeStates.INACTIVE;
+    if (!isActiveLine) { return display(geojson); }
+    // Only render the line if it has at least one real coordinate
+    if (geojson.geometry.coordinates.length < 2) { return; }
+    geojson.properties.meta = meta.FEATURE;
+    display(createVertex(
+        state.line.id,
+        geojson.geometry.coordinates[state.direction === 'forward' ? geojson.geometry.coordinates.length - 2 : 1],
+        ("" + (state.direction === 'forward' ? geojson.geometry.coordinates.length - 2 : 1)),
+        false
+    ));
+
+    display(geojson);
+    var ref = geojson.geometry;
+    var coordinates = ref.coordinates;
+    display(createArrowVertex(
+        state.line.id,
+        state.currentVertexPosition,
+        coordinates,
+        false
+    ));
+};
+
 var modes = {
     simple_select: SimpleSelect,
     direct_select: DirectSelect,
@@ -6186,7 +6279,8 @@ var modes = {
     draw_rectangle: DrawRectangle,
     draw_rotate: RotateMode,
     draw_text: DrawText,
-    draw_marker: DrawMarker
+    draw_marker: DrawMarker,
+    draw_line_arrow: DrawLineArrow
 };
 
 var defaultOptions = {

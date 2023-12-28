@@ -3,7 +3,8 @@ import * as Constants from '../constants';
 
 const DrawMarker = {};
 
-DrawMarker.onSetup = function() {
+DrawMarker.onSetup = function(options) {
+    this.icon = (options && options.icon) || 'gl-draw-ns-marker';
     const point = this.newFeature({
         type: Constants.geojsonTypes.FEATURE,
         properties: {},
@@ -34,7 +35,7 @@ DrawMarker.stopDrawingAndRemove = function(state) {
 DrawMarker.onTap = DrawMarker.onClick = function(state, e) {
     this.updateUIClasses({ mouse: Constants.cursors.MOVE });
     state.point.updateCoordinate('', e.lngLat.lng, e.lngLat.lat);
-    state.point.properties.icon = 'marker-15';
+    state.point.properties.icon = this.icon;
     this.map.fire(Constants.events.CREATE, {
         features: [state.point.toGeoJSON()]
     });

@@ -166,8 +166,8 @@ export default [
             ['==', '$type', 'Point'],
             ['==', 'active', 'true'],
             ['!=', 'meta', 'midpoint'],
-            ['!has', 'user_text'],
-            ['!has', 'user_icon']
+            ['!has', 'text'],
+            ['!has', 'icon']
         ],
         'paint': {
             'circle-radius': 7,
@@ -181,8 +181,8 @@ export default [
             ['==', '$type', 'Point'],
             ['!=', 'meta', 'midpoint'],
             ['==', 'active', 'true'],
-            ['!has', 'user_text'],
-            ['!has', 'user_icon']
+            ['!has', 'text'],
+            ['!has', 'icon']
         ],
         'paint': {
             'circle-radius': 5,
@@ -236,7 +236,52 @@ export default [
     },
 
     {
-        id: 'drawmarker-active',
+        id: 'gl-draw-point-arrow-inactive',
+        type: 'symbol',
+        filter: ['all',
+            ['has', 'user_bearing'], // Ensure the feature has an icon field
+        ],
+        layout: {
+            'icon-image': 'gl-draw-arrow-icon',
+            'icon-size': 0.04,
+            'icon-rotate': {
+                type: 'identity',
+                property: 'user_bearing',
+                default: 0
+            },
+            'icon-anchor': 'top',
+            'icon-rotation-alignment': 'map',
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': false,
+        },
+        ignore: true,
+    },
+    {
+        id: 'gl-draw-point-arrow-active',
+        type: 'symbol',
+        filter: ['all', ['==', 'meta', 'arrowPosition']],
+        layout: {
+            'icon-image': 'gl-draw-arrow-icon',
+            'icon-size': 0.07,
+            'icon-rotate': {
+                type: 'identity',
+                property: 'bearing',
+                default: 0
+            },
+            'icon-anchor': 'top',
+            'icon-rotation-alignment': 'map',
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': false,
+        },
+        paint: {
+            'icon-color': H_COLOR,
+            'icon-opacity': 1,
+            'icon-halo-color': '#FFF'
+        }
+    },
+
+    {
+        id: 'gl-draw-marker-active',
         type: 'symbol',
         filter: [
             'all',
@@ -245,7 +290,7 @@ export default [
             ['==', 'active', 'true'], // Active markers
         ],
         layout: {
-            'icon-image': ['get', 'user_icon'], // Dynamically get the icon image from the feature's properties
+            'icon-image': ['get', 'icon'], // Dynamically get the icon image from the feature's properties
             'icon-size': 2, // Larger icon size for active markers
         },
         paint: {
@@ -256,7 +301,7 @@ export default [
     },
 
     {
-        id: 'drawmarker-cold',
+        id: 'gl-draw-marker-inactive',
         type: 'symbol',
         filter: [
             'all',
@@ -276,7 +321,7 @@ export default [
     },
 
     {
-        id: 'drawtext-active',
+        id: 'gl-draw-text-active',
         type: 'symbol',
         filter: [
             'all',
@@ -286,7 +331,7 @@ export default [
         ],
         layout: {
             'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-            'text-field': ['get', 'user_text'],
+            'text-field': ['get', 'text'],
             'text-size': 14,
             'text-allow-overlap': true,
             'text-ignore-placement': false,
@@ -302,7 +347,7 @@ export default [
     },
 
     {
-        id: 'drawtext-cold',
+        id: 'gl-draw-text-inactive',
         type: 'symbol',
         filter: [
             'all',
@@ -325,5 +370,5 @@ export default [
             'text-halo-color': '#fff',
             'text-halo-width': 1,
         }
-    }
+    },
 ];
