@@ -8,6 +8,8 @@ import draw_circle from './draw_circle';
 import draw_drag_circle from './draw_drag_circle';
 import draw_rectangle from './draw_rectangle';
 import draw_rotate from './draw_rotate';
+import draw_text from './draw_text';
+import draw_marker from './draw_marker'
 
 export default {
     simple_select,
@@ -18,5 +20,7 @@ export default {
     draw_circle,
     draw_drag_circle,
     draw_rectangle,
-    draw_rotate
+    draw_rotate,
+    draw_text,
+    draw_marker
 };

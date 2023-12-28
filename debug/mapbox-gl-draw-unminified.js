@@ -2435,232 +2435,329 @@ function runSetup(ctx) {
   return setup;
 }
 
+var H_COLOR = '#4264fb';
 var styles = [
-  {
-    'id': 'gl-draw-polygon-fill-inactive',
-    'type': 'fill',
-    'filter': ['all',
-      ['==', 'active', 'false'],
-      ['==', '$type', 'Polygon'],
-      ['!=', 'mode', 'static']
-    ],
-    'paint': {
-      'fill-color': '#3bb2d0',
-      'fill-outline-color': '#3bb2d0',
-      'fill-opacity': 0.1
-    }
-  },
-  {
-    'id': 'gl-draw-polygon-fill-active',
-    'type': 'fill',
-    'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
-    'paint': {
-      'fill-color': '#fbb03b',
-      'fill-outline-color': '#fbb03b',
-      'fill-opacity': 0.1
-    }
-  },
-  {
-    'id': 'gl-draw-polygon-midpoint',
-    'type': 'circle',
-    'filter': ['all',
-      ['==', '$type', 'Point'],
-      ['==', 'meta', 'midpoint']],
-    'paint': {
-      'circle-radius': 3,
-      'circle-color': '#fbb03b'
-    }
-  },
-  {
-    'id': 'gl-draw-polygon-stroke-inactive',
-    'type': 'line',
-    'filter': ['all',
-      ['==', 'active', 'false'],
-      ['==', '$type', 'Polygon'],
-      ['!=', 'mode', 'static']
-    ],
-    'layout': {
-      'line-cap': 'round',
-      'line-join': 'round'
+    {
+        'id': 'gl-draw-polygon-fill-inactive',
+        'type': 'fill',
+        'filter': ['all',
+            ['==', 'active', 'false'],
+            ['==', '$type', 'Polygon'],
+            ['!=', 'mode', 'static']
+        ],
+        'paint': {
+            'fill-color': H_COLOR,
+            'fill-outline-color': H_COLOR,
+            'fill-opacity': 0.1
+        }
     },
-    'paint': {
-      'line-color': '#3bb2d0',
-      'line-width': 2
-    }
-  },
-  {
-    'id': 'gl-draw-polygon-stroke-active',
-    'type': 'line',
-    'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
-    'layout': {
-      'line-cap': 'round',
-      'line-join': 'round'
+    {
+        'id': 'gl-draw-polygon-fill-active',
+        'type': 'fill',
+        'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
+        'paint': {
+            'fill-color': H_COLOR,
+            'fill-outline-color': H_COLOR,
+            'fill-opacity': 0.1
+        }
     },
-    'paint': {
-      'line-color': '#fbb03b',
-      'line-dasharray': [0.2, 2],
-      'line-width': 2
-    }
-  },
-  {
-    'id': 'gl-draw-line-inactive',
-    'type': 'line',
-    'filter': ['all',
-      ['==', 'active', 'false'],
-      ['==', '$type', 'LineString'],
-      ['!=', 'mode', 'static']
-    ],
-    'layout': {
-      'line-cap': 'round',
-      'line-join': 'round'
+    {
+        'id': 'gl-draw-polygon-midpoint',
+        'type': 'circle',
+        'filter': ['all',
+            ['==', '$type', 'Point'],
+            ['==', 'meta', 'midpoint']],
+        'paint': {
+            'circle-radius': 3,
+            'circle-color': H_COLOR
+        }
     },
-    'paint': {
-      'line-color': '#3bb2d0',
-      'line-width': 2
-    }
-  },
-  {
-    'id': 'gl-draw-line-active',
-    'type': 'line',
-    'filter': ['all',
-      ['==', '$type', 'LineString'],
-      ['==', 'active', 'true']
-    ],
-    'layout': {
-      'line-cap': 'round',
-      'line-join': 'round'
+    {
+        'id': 'gl-draw-polygon-stroke-inactive',
+        'type': 'line',
+        'filter': ['all',
+            ['==', 'active', 'false'],
+            ['==', '$type', 'Polygon'],
+            ['!=', 'mode', 'static']
+        ],
+        'layout': {
+            'line-cap': 'round',
+            'line-join': 'round'
+        },
+        'paint': {
+            'line-color': H_COLOR,
+            'line-width': 2
+        }
     },
-    'paint': {
-      'line-color': '#fbb03b',
-      'line-dasharray': [0.2, 2],
-      'line-width': 2
-    }
-  },
-  {
-    'id': 'gl-draw-polygon-and-line-vertex-stroke-inactive',
-    'type': 'circle',
-    'filter': ['all',
-      ['==', 'meta', 'vertex'],
-      ['==', '$type', 'Point'],
-      ['!=', 'mode', 'static']
-    ],
-    'paint': {
-      'circle-radius': 5,
-      'circle-color': '#fff'
-    }
-  },
-  {
-    'id': 'gl-draw-polygon-and-line-vertex-inactive',
-    'type': 'circle',
-    'filter': ['all',
-      ['==', 'meta', 'vertex'],
-      ['==', '$type', 'Point'],
-      ['!=', 'mode', 'static']
-    ],
-    'paint': {
-      'circle-radius': 3,
-      'circle-color': '#fbb03b'
-    }
-  },
-  {
-    'id': 'gl-draw-point-point-stroke-inactive',
-    'type': 'circle',
-    'filter': ['all',
-      ['==', 'active', 'false'],
-      ['==', '$type', 'Point'],
-      ['==', 'meta', 'feature'],
-      ['!=', 'mode', 'static']
-    ],
-    'paint': {
-      'circle-radius': 5,
-      'circle-opacity': 1,
-      'circle-color': '#fff'
-    }
-  },
-  {
-    'id': 'gl-draw-point-inactive',
-    'type': 'circle',
-    'filter': ['all',
-      ['==', 'active', 'false'],
-      ['==', '$type', 'Point'],
-      ['==', 'meta', 'feature'],
-      ['!=', 'mode', 'static']
-    ],
-    'paint': {
-      'circle-radius': 3,
-      'circle-color': '#3bb2d0'
-    }
-  },
-  {
-    'id': 'gl-draw-point-stroke-active',
-    'type': 'circle',
-    'filter': ['all',
-      ['==', '$type', 'Point'],
-      ['==', 'active', 'true'],
-      ['!=', 'meta', 'midpoint']
-    ],
-    'paint': {
-      'circle-radius': 7,
-      'circle-color': '#fff'
-    }
-  },
-  {
-    'id': 'gl-draw-point-active',
-    'type': 'circle',
-    'filter': ['all',
-      ['==', '$type', 'Point'],
-      ['!=', 'meta', 'midpoint'],
-      ['==', 'active', 'true']],
-    'paint': {
-      'circle-radius': 5,
-      'circle-color': '#fbb03b'
-    }
-  },
-  {
-    'id': 'gl-draw-polygon-fill-static',
-    'type': 'fill',
-    'filter': ['all', ['==', 'mode', 'static'], ['==', '$type', 'Polygon']],
-    'paint': {
-      'fill-color': '#404040',
-      'fill-outline-color': '#404040',
-      'fill-opacity': 0.1
-    }
-  },
-  {
-    'id': 'gl-draw-polygon-stroke-static',
-    'type': 'line',
-    'filter': ['all', ['==', 'mode', 'static'], ['==', '$type', 'Polygon']],
-    'layout': {
-      'line-cap': 'round',
-      'line-join': 'round'
+    {
+        'id': 'gl-draw-polygon-stroke-active',
+        'type': 'line',
+        'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
+        'layout': {
+            'line-cap': 'round',
+            'line-join': 'round'
+        },
+        'paint': {
+            'line-color': H_COLOR,
+            'line-dasharray': [0.2, 2],
+            'line-width': 2
+        }
     },
-    'paint': {
-      'line-color': '#404040',
-      'line-width': 2
-    }
-  },
-  {
-    'id': 'gl-draw-line-static',
-    'type': 'line',
-    'filter': ['all', ['==', 'mode', 'static'], ['==', '$type', 'LineString']],
-    'layout': {
-      'line-cap': 'round',
-      'line-join': 'round'
+    {
+        'id': 'gl-draw-line-inactive',
+        'type': 'line',
+        'filter': ['all',
+            ['==', 'active', 'false'],
+            ['==', '$type', 'LineString'],
+            ['!=', 'mode', 'static']
+        ],
+        'layout': {
+            'line-cap': 'round',
+            'line-join': 'round'
+        },
+        'paint': {
+            'line-color': H_COLOR,
+            'line-width': 2
+        }
     },
-    'paint': {
-      'line-color': '#404040',
-      'line-width': 2
+    {
+        'id': 'gl-draw-line-active',
+        'type': 'line',
+        'filter': ['all',
+            ['==', '$type', 'LineString'],
+            ['==', 'active', 'true']
+        ],
+        'layout': {
+            'line-cap': 'round',
+            'line-join': 'round'
+        },
+        'paint': {
+            'line-color': H_COLOR,
+            'line-dasharray': [0.2, 2],
+            'line-width': 2
+        }
+    },
+    {
+        'id': 'gl-draw-polygon-and-line-vertex-stroke-inactive',
+        'type': 'circle',
+        'filter': ['all',
+            ['==', 'meta', 'vertex'],
+            ['==', '$type', 'Point'],
+            ['!=', 'mode', 'static']
+        ],
+        'paint': {
+            'circle-radius': 5,
+            'circle-color': '#fff'
+        }
+    },
+    {
+        'id': 'gl-draw-polygon-and-line-vertex-inactive',
+        'type': 'circle',
+        'filter': ['all',
+            ['==', 'meta', 'vertex'],
+            ['==', '$type', 'Point'],
+            ['!=', 'mode', 'static'] ],
+        'paint': {
+            'circle-radius': 3,
+            'circle-color': H_COLOR
+        }
+    },
+    {
+        'id': 'gl-draw-point-point-stroke-inactive',
+        'type': 'circle',
+        'filter': ['all',
+            ['==', 'active', 'false'],
+            ['==', '$type', 'Point'],
+            ['==', 'meta', 'feature'],
+            ['!=', 'mode', 'static'],
+            ['!has', 'user_text'],
+            ['!has', 'user_icon']
+        ],
+        'paint': {
+            'circle-radius': 5,
+            'circle-opacity': 1,
+            'circle-color': '#fff'
+        }
+    },
+    {
+        'id': 'gl-draw-point-inactive',
+        'type': 'circle',
+        'filter': ['all',
+            ['==', 'active', 'false'],
+            ['==', '$type', 'Point'],
+            ['==', 'meta', 'feature'],
+            ['!=', 'mode', 'static'],
+            ['!has', 'user_text'],
+            ['!has', 'user_icon']
+        ],
+        'paint': {
+            'circle-radius': 3,
+            'circle-color': H_COLOR
+        }
+    },
+    {
+        'id': 'gl-draw-point-stroke-active',
+        'type': 'circle',
+        'filter': ['all',
+            ['==', '$type', 'Point'],
+            ['==', 'active', 'true'],
+            ['!=', 'meta', 'midpoint'],
+            ['!has', 'user_text'],
+            ['!has', 'user_icon']
+        ],
+        'paint': {
+            'circle-radius': 7,
+            'circle-color': '#fff'
+        }
+    },
+    {
+        'id': 'gl-draw-point-active',
+        'type': 'circle',
+        'filter': ['all',
+            ['==', '$type', 'Point'],
+            ['!=', 'meta', 'midpoint'],
+            ['==', 'active', 'true'],
+            ['!has', 'user_text'],
+            ['!has', 'user_icon']
+        ],
+        'paint': {
+            'circle-radius': 5,
+            'circle-color': H_COLOR
+        }
+    },
+    {
+        'id': 'gl-draw-polygon-fill-static',
+        'type': 'fill',
+        'filter': ['all', ['==', 'mode', 'static'], ['==', '$type', 'Polygon']],
+        'paint': {
+            'fill-color': '#404040',
+            'fill-outline-color': '#404040',
+            'fill-opacity': 0.1
+        }
+    },
+    {
+        'id': 'gl-draw-polygon-stroke-static',
+        'type': 'line',
+        'filter': ['all', ['==', 'mode', 'static'], ['==', '$type', 'Polygon']],
+        'layout': {
+            'line-cap': 'round',
+            'line-join': 'round'
+        },
+        'paint': {
+            'line-color': '#404040',
+            'line-width': 2
+        }
+    },
+    {
+        'id': 'gl-draw-line-static',
+        'type': 'line',
+        'filter': ['all', ['==', 'mode', 'static'], ['==', '$type', 'LineString']],
+        'layout': {
+            'line-cap': 'round',
+            'line-join': 'round'
+        },
+        'paint': {
+            'line-color': '#404040',
+            'line-width': 2
+        }
+    },
+    {
+        'id': 'gl-draw-point-static',
+        'type': 'circle',
+        'filter': ['all', ['==', 'mode', 'static'], ['==', '$type', 'Point']],
+        'paint': {
+            'circle-radius': 5,
+            'circle-color': '#404040'
+        }
+    },
+
+    {
+        id: 'drawmarker-active',
+        type: 'symbol',
+        filter: [
+            'all',
+            ['==', '$type', 'Point'],
+            ['has', 'user_icon'], // Ensure the feature has an icon field
+            ['==', 'active', 'true'] ],
+        layout: {
+            'icon-image': ['get', 'user_icon'], // Dynamically get the icon image from the feature's properties
+            'icon-size': 2, // Larger icon size for active markers
+        },
+        paint: {
+            "icon-color": H_COLOR,
+            "icon-halo-color": H_COLOR,
+            "icon-halo-width": 2
+        }
+    },
+
+    {
+        id: 'drawmarker-cold',
+        type: 'symbol',
+        filter: [
+            'all',
+            ['==', '$type', 'Point'],
+            ['has', 'user_icon'], // Ensure the feature has an icon field
+            ['!=', 'active', 'true'] ],
+        layout: {
+            'icon-image': ['get', 'user_icon'], // Dynamically get the icon image from the feature's properties
+            'icon-size': 2, // Smaller icon size for inactive markers
+        },
+        paint: {
+            "icon-color": H_COLOR,
+            "icon-halo-color": H_COLOR,
+            "icon-halo-width": 2
+        }
+    },
+
+    {
+        id: 'drawtext-active',
+        type: 'symbol',
+        filter: [
+            'all',
+            ['==', '$type', 'Point'],
+            ['has', 'user_text'], // Ensure the feature has a text field
+            ['==', 'active', 'true'] ],
+        layout: {
+            'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+            'text-field': ['get', 'user_text'],
+            'text-size': 14,
+            'text-allow-overlap': true,
+            'text-ignore-placement': false,
+            'text-justify': 'center',
+            'text-line-height': 0.2, // Setting the line height
+            'text-letter-spacing': 0.2 // Setting the letter spacing
+        },
+        paint: {
+            'text-color': H_COLOR, // More prominent text color
+            'text-halo-color': '#fff',
+            'text-halo-width': 1,
+        }
+    },
+
+    {
+        id: 'drawtext-cold',
+        type: 'symbol',
+        filter: [
+            'all',
+            ['==', '$type', 'Point'],
+            ['has', 'user_text'], // Ensure the feature has a text field
+            ['!=', 'active', 'true'] ],
+        layout: {
+            'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+            'text-field': ['get', 'user_text'],
+            'text-size': 14,
+            'text-allow-overlap': true,
+            'text-ignore-placement': false,
+            'text-justify': 'center',
+            'text-line-height': 0.2, // Setting the line height
+            'text-letter-spacing': 0.2 // Setting the letter spacing
+        },
+        paint: {
+            'text-color': H_COLOR, // Less prominent text color
+            'text-halo-color': '#fff',
+            'text-halo-width': 1,
+        }
     }
-  },
-  {
-    'id': 'gl-draw-point-static',
-    'type': 'circle',
-    'filter': ['all', ['==', 'mode', 'static'], ['==', '$type', 'Point']],
-    'paint': {
-      'circle-radius': 5,
-      'circle-color': '#404040'
-    }
-  }
 ];
 
 function isOfMetaType(type) {
@@ -5909,6 +6006,175 @@ var RotateMode = {
     }
 };
 
+var DrawText = {};
+
+DrawText.onSetup = function() {
+    var point = this.newFeature({
+        type: geojsonTypes.FEATURE,
+        properties: {},
+        geometry: {
+            type: geojsonTypes.POINT,
+            coordinates: []
+        }
+    });
+
+    this.addFeature(point);
+
+    this.clearSelectedFeatures();
+    this.updateUIClasses({ mouse: cursors.ADD });
+    this.activateUIButton(types$1.POINT);
+
+    this.setActionableState({
+        trash: true
+    });
+
+    return { point: point };
+};
+
+DrawText.stopDrawingAndRemove = function(state) {
+    this.deleteFeature([state.point.id], { silent: true });
+    this.changeMode(modes$1.SIMPLE_SELECT);
+};
+
+DrawText.onTap = DrawText.onClick = function(state, e) {
+    var map = this.map;
+    this.updateUIClasses({ mouse: cursors.MOVE });
+    state.point.updateCoordinate('', e.lngLat.lng, e.lngLat.lat);
+
+    // First, try to remove any existing form container
+    var existingContainer = document.getElementById("mapbox-gl-draw-text-form-container");
+    if (existingContainer) {
+        existingContainer.remove(); // Remove the existing form if it's there
+    }
+    var pixels = map.project(e.lngLat);
+    var formContainer = document.createElement("div");
+    formContainer.id = "mapbox-gl-draw-text-form-container"; // Unique identifier for the form container
+    formContainer.style.position = "absolute";
+    formContainer.style.left = (pixels.x) + "px";
+    formContainer.style.top = (pixels.y) + "px";
+    formContainer.style.zIndex = "10";
+    formContainer.style.display = "block";
+
+    var form = document.createElement("form");
+    form.id = "text-input-form";
+
+    var input = document.createElement("input");
+    input.type = "text";
+    input.id = "text-input";
+    input.placeholder = "Enter text here";
+    input.classList.add("mui-text-field");
+
+    var button = document.createElement("button");
+    button.type = "submit";
+    button.innerText = "Submit";
+    button.classList.add("mui-btn");
+
+    form.appendChild(input);
+    form.appendChild(button);
+    formContainer.appendChild(form);
+
+    map.getContainer().appendChild(formContainer);
+
+    form.onsubmit = function(event) {
+        event.preventDefault();
+        var text = input.value.trim();
+        if (text) {
+            state.point.properties.text = text;
+            // Clean up the form after submission
+            map.getContainer().removeChild(formContainer);
+        }
+    };
+
+    this.map.fire(events$1.CREATE, {
+        features: [state.point.toGeoJSON()]
+    });
+    this.changeMode(modes$1.SIMPLE_SELECT, { featureIds: [state.point.id] });
+};
+
+DrawText.onStop = function(state) {
+    this.activateUIButton();
+    if (!state.point.getCoordinate().length) {
+        this.deleteFeature([state.point.id], { silent: true });
+    }
+};
+
+DrawText.toDisplayFeatures = function(state, geojson, display) {
+    // Never render the point we're drawing
+    var isActivePoint = geojson.properties.id === state.point.id;
+    geojson.properties.active = (isActivePoint) ? activeStates.ACTIVE : activeStates.INACTIVE;
+    if (!isActivePoint) { return display(geojson); }
+};
+
+DrawText.onTrash = DrawText.stopDrawingAndRemove;
+
+DrawText.onKeyUp = function(state, e) {
+    if (isEscapeKey(e) || isEnterKey(e)) {
+        return this.stopDrawingAndRemove(state, e);
+    }
+};
+
+var DrawMarker = {};
+
+DrawMarker.onSetup = function() {
+    var point = this.newFeature({
+        type: geojsonTypes.FEATURE,
+        properties: {},
+        geometry: {
+            type: geojsonTypes.POINT,
+            coordinates: []
+        }
+    });
+
+    this.addFeature(point);
+
+    this.clearSelectedFeatures();
+    this.updateUIClasses({ mouse: cursors.ADD });
+    this.activateUIButton(types$1.POINT);
+
+    this.setActionableState({
+        trash: true
+    });
+
+    return { point: point };
+};
+
+DrawMarker.stopDrawingAndRemove = function(state) {
+    this.deleteFeature([state.point.id], { silent: true });
+    this.changeMode(modes$1.SIMPLE_SELECT);
+};
+
+DrawMarker.onTap = DrawMarker.onClick = function(state, e) {
+    this.updateUIClasses({ mouse: cursors.MOVE });
+    state.point.updateCoordinate('', e.lngLat.lng, e.lngLat.lat);
+    state.point.properties.icon = 'marker-15';
+    this.map.fire(events$1.CREATE, {
+        features: [state.point.toGeoJSON()]
+    });
+    this.changeMode(modes$1.SIMPLE_SELECT, { featureIds: [state.point.id] });
+};
+
+DrawMarker.onStop = function(state) {
+    this.activateUIButton();
+    if (!state.point.getCoordinate().length) {
+        this.deleteFeature([state.point.id], { silent: true });
+    }
+};
+
+DrawMarker.toDisplayFeatures = function(state, geojson, display) {
+    // Never render the point we're drawing
+    var isActivePoint = geojson.properties.id === state.point.id;
+    geojson.properties.active = (isActivePoint) ? activeStates.ACTIVE : activeStates.INACTIVE;
+    if (!isActivePoint) { return display(geojson); }
+};
+
+DrawMarker.onTrash = DrawMarker.stopDrawingAndRemove;
+
+DrawMarker.onKeyUp = function(state, e) {
+    if (isEscapeKey(e) || isEnterKey(e)) {
+        return this.stopDrawingAndRemove(state, e);
+    }
+};
+
 var modes = {
     simple_select: SimpleSelect,
     direct_select: DirectSelect,
@@ -5918,7 +6184,9 @@ var modes = {
     draw_circle: CircleMode,
     draw_drag_circle: DragCircleMode,
     draw_rectangle: DrawRectangle,
-    draw_rotate: RotateMode
+    draw_rotate: RotateMode,
+    draw_text: DrawText,
+    draw_marker: DrawMarker
 };
 
 var defaultOptions = {

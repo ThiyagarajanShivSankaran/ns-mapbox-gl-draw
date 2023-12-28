@@ -35,7 +35,7 @@ map.addControl(new mapboxgl.NavigationControl(), 'top-left');
 
 const modes = MapboxDraw.modes;
 modes.static = StaticMode;
-const Draw = window.Draw = new MapboxDraw({ modes });
+const Draw = window.Draw = new MapboxDraw({ modes, userProperties: true, });
 let drawIsActive = true;
 map.addControl(Draw, 'bottom-right');
 
@@ -84,13 +84,13 @@ map.on('load', () => {
   // Jump into draw point mode via a custom UI element
   const startPoint = document.getElementById('start-point');
   startPoint.onclick = function() {
-    Draw.changeMode('draw_rectangle');
+    Draw.changeMode('draw_text');
   };
 
   // Jump into draw line mode via a custom UI element
   const startLine = document.getElementById('start-line');
   startLine.onclick = function() {
-    Draw.changeMode('draw_rotate');
+    Draw.changeMode('draw_marker');
   };
 
   // Jump into draw polygon mode via a custom UI element
@@ -104,6 +104,25 @@ map.on('load', () => {
   startStatic.onclick = function() {
     Draw.changeMode('static');
   };
-
+  // map.on('mousemove', (event) => {
+  //   const allLayers = map.getStyle().layers; // Get all layers from the map's style
+  //   const symbolLayers = allLayers.filter(layer => layer.type === 'symbol'); // Find symbol layers
+  //
+  //   symbolLayers.forEach(layer => {
+  //     console.log(layer?.layout["icon-image"])
+  //   });
+  // })
+//   // Get the sprite URL from the style
+//   const style = map.getStyle();
+//   const spriteUrl = style.sprite + '.json'; // Add '.json' to get the sprite's metadata
+//
+// // Fetch and log all available icons
+//   fetch(spriteUrl)
+//       .then(response => response.json())
+//       .then(data => {
+//         // Data contains all the icons in the sprite
+//         console.log("Available icons:", Object.keys(data)); // The keys are typically the icon names
+//       })
+//       .catch(error => console.error("Error fetching sprite:", error));
 });
 

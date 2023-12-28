@@ -86,3 +86,32 @@
     border: 2px dotted #fff;
     opacity: 0.5;
 }
+.mui-text-field {
+    border: 1px solid #c4c4c4;
+    padding: 10px 15px;
+    border-radius: 4px;
+    outline: none;
+    font-size: 16px;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+}
+
+.mui-text-field:focus {
+    border-color: #4264fb;
+}
+
+.mui-btn {
+    background-color: #4264fb;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    -moz-border-radius-bottomright: 4px;
+    -moz-border-radius-topright: 4px;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.mui-btn:hover {
+    background-color: #303f9f;
+}
