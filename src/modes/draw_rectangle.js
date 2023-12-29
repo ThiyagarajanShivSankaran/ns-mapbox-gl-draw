@@ -1,3 +1,6 @@
+import create_distance from "../lib/create_distance";
+import centerOfMass from '@turf/center-of-mass';
+
 const doubleClickZoom = {
     enable: ctx => {
         setTimeout(() => {
@@ -26,10 +29,11 @@ const doubleClickZoom = {
 
 const DrawRectangle = {
     // When the mode starts this function will be called.
-    onSetup: function(opts) {
+    onSetup: function (opts) {
+        const properties = (opts && opts.properties) || {};
         const rectangle = this.newFeature({
             type: "Feature",
-            properties: {},
+            properties: {...properties},
             geometry: {
                 type: "Polygon",
                 coordinates: [[]]
@@ -38,23 +42,24 @@ const DrawRectangle = {
         this.addFeature(rectangle);
         this.clearSelectedFeatures();
         doubleClickZoom.disable(this);
-        this.updateUIClasses({ mouse: "add" });
+        this.updateUIClasses({mouse: "add"});
         this.setActionableState({
             trash: true
         });
         return {
-            rectangle
+            rectangle,
+            opts: opts || {}
         };
     },
     // support mobile taps
-    onTap: function(state, e) {
+    onTap: function (state, e) {
         // emulate 'move mouse' to update feature coords
         if (state.startPoint) this.onMouseMove(state, e);
         // emulate onClick
         this.onClick(state, e);
     },
     // Whenever a user clicks on the map, Draw will call `onClick`
-    onClick: function(state, e) {
+    onClick: function (state, e) {
         // if state.startPoint exist, means its second click
         //change to  simple_select mode
         if (
@@ -62,15 +67,15 @@ const DrawRectangle = {
             state.startPoint[0] !== e.lngLat.lng &&
             state.startPoint[1] !== e.lngLat.lat
         ) {
-            this.updateUIClasses({ mouse: "pointer" });
+            this.updateUIClasses({mouse: "pointer"});
             state.endPoint = [e.lngLat.lng, e.lngLat.lat];
-            this.changeMode("simple_select", { featuresId: state.rectangle.id });
+            this.changeMode("simple_select", {featuresId: state.rectangle.id});
         }
         // on first click, save clicked point coords as starting for  rectangle
         const startPoint = [e.lngLat.lng, e.lngLat.lat];
         state.startPoint = startPoint;
     },
-    onMouseMove: function(state, e) {
+    onMouseMove: function (state, e) {
         // if startPoint, update the feature coordinates, using the bounding box concept
         // we are simply using the startingPoint coordinates and the current Mouse Position
         // coordinates to calculate the bounding box on the fly, which will be our rectangle
@@ -99,12 +104,12 @@ const DrawRectangle = {
         }
     },
     // Whenever a user clicks on a key while focused on the map, it will be sent here
-    onKeyUp: function(state, e) {
+    onKeyUp: function (state, e) {
         if (e.keyCode === 27) return this.changeMode("simple_select");
     },
-    onStop: function(state) {
+    onStop: function (state) {
         doubleClickZoom.enable(this);
-        this.updateUIClasses({ mouse: "none" });
+        this.updateUIClasses({mouse: "none"});
         this.activateUIButton();
 
         // check to see if we've deleted this feature
@@ -113,25 +118,48 @@ const DrawRectangle = {
         //remove last added coordinate
         state.rectangle.removeCoordinate("0.4");
         if (state.rectangle.isValid()) {
+            if (state.opts.measurement) {
+                const {metric, standard} = create_distance(state.rectangle.toGeoJSON());
+                state.rectangle.properties = {
+                    ...state.rectangle.properties,
+                    distance: state.opts.unit === 'metric' ? metric : standard,
+                }
+            }
             this.map.fire("draw.create", {
                 features: [state.rectangle.toGeoJSON()]
             });
         } else {
-            this.deleteFeature([state.rectangle.id], { silent: true });
-            this.changeMode("simple_select", {}, { silent: true });
+            this.deleteFeature([state.rectangle.id], {silent: true});
+            this.changeMode("simple_select", {}, {silent: true});
         }
     },
-    toDisplayFeatures: function(state, geojson, display) {
+    toDisplayFeatures: function (state, geojson, display) {
         const isActivePolygon = geojson.properties.id === state.rectangle.id;
         geojson.properties.active = isActivePolygon ? "true" : "false";
         if (!isActivePolygon) return display(geojson);
 
         // Only render the rectangular polygon if it has the starting point
         if (!state.startPoint) return;
-        return display(geojson);
+        display(geojson);
+
+        const opts = state.opts || {};
+        if (opts.measurement) {
+            const {metric, standard} = create_distance(state.rectangle.toGeoJSON());
+            const currentVertex = {
+                type: 'Feature',
+                properties: {distance: state.opts.unit === 'metric' ? metric : standard,},
+                geometry: {
+                    type: 'Point',
+                    coordinates: centerOfMass(geojson.geometry).geometry.coordinates,
+                },
+            };
+            display(currentVertex);
+        }
+
+        return null
     },
-    onTrash: function(state) {
-        this.deleteFeature([state.rectangle.id], { silent: true });
+    onTrash: function (state) {
+        this.deleteFeature([state.rectangle.id], {silent: true});
         this.changeMode("simple_select");
     }
 };

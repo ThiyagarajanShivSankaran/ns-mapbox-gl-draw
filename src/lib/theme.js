@@ -1,4 +1,6 @@
 export const H_COLOR = '#4264fb';
+export const T_COLOR = 'rgb(46, 70, 175)';
+
 export default [
     {
         'id': 'gl-draw-polygon-fill-inactive',
@@ -340,9 +342,9 @@ export default [
             'text-letter-spacing': 0.2 // Setting the letter spacing
         },
         paint: {
-            'text-color': H_COLOR, // More prominent text color
+            'text-color': T_COLOR, // More prominent text color
             'text-halo-color': '#fff',
-            'text-halo-width': 1,
+            'text-halo-width': 2,
         }
     },
 
@@ -366,9 +368,114 @@ export default [
             'text-letter-spacing': 0.2 // Setting the letter spacing
         },
         paint: {
-            'text-color': H_COLOR, // Less prominent text color
+            'text-color': T_COLOR, // Less prominent text color
             'text-halo-color': '#fff',
-            'text-halo-width': 1,
+            'text-halo-width': 2,
         }
+    },
+
+    // Custom circle data active
+    {
+        'id': 'gl-draw-polygon-fill-custom-circle-active',
+        'filter': ['all',
+            ['==', 'meta', "radius"],
+            ['==', 'active', 'true']
+        ],
+        'type': 'line',
+        'layout': {
+            'line-cap': 'round',
+            'line-join': 'round'
+        },
+        'paint': {
+            'line-color': H_COLOR,
+            'line-width': 3
+        }
+    },
+
+    // Custom circle data inactive
+    {
+        'id': 'gl-draw-polygon-fill-custom-circle-inactive',
+        'filter': ['all',
+            ['==', 'user_meta', "radius"],
+            ['==', 'user_active', 'false']
+        ],
+        'type': 'line',
+        'layout': {
+            'line-cap': 'round',
+            'line-join': 'round'
+        },
+        'paint': {
+            'line-color': H_COLOR,
+            'line-width': 3
+        }
+    },
+
+    // radius label
+    {
+        id: 'gl-draw-radius-label-active',
+        type: 'symbol',
+        filter: ['has', 'distance'],
+        layout: {
+            'text-field': '{distance}',
+            'text-anchor': 'center',
+            'text-offset': [
+                1,
+                0,
+            ],
+            'text-size': 14,
+        },
+        paint: {
+            'text-color': T_COLOR,
+            'text-halo-color': 'rgba(255, 255, 255, 1)',
+            'text-halo-width': 2,
+            'icon-opacity': {
+                base: 1,
+                stops: [
+                    [
+                        7.99,
+                        1,
+                    ],
+                    [
+                        8,
+                        0,
+                    ],
+                ],
+            },
+            'text-halo-blur': 1,
+        },
+    },
+
+    {
+        id: 'gl-draw-radius-label-inactive',
+        type: 'symbol',
+        filter: ['has', 'user_distance'],
+        layout: {
+            'text-field': '{user_distance}',
+            'text-anchor': 'center',
+            'text-offset': [
+                1,
+                0,
+            ],
+            'text-size': 14,
+        },
+        paint: {
+            'text-color': T_COLOR,
+            'text-halo-color': 'rgba(255, 255, 255, 1)',
+            'text-halo-width': 2,
+            'icon-opacity': {
+                base: 1,
+                stops: [
+                    [
+                        7.99,
+                        1,
+                    ],
+                    [
+                        8,
+                        0,
+                    ],
+                ],
+            },
+            'text-halo-blur': 1,
+        },
     },
 ];

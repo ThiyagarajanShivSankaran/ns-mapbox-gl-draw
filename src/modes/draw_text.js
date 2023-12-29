@@ -1,111 +1,139 @@
 import * as CommonSelectors from '../lib/common_selectors';
 import * as Constants from '../constants';
 
-const DrawText = {};
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
-DrawText.onSetup = function() {
-    const point = this.newFeature({
-        type: Constants.geojsonTypes.FEATURE,
-        properties: {},
-        geometry: {
-            type: Constants.geojsonTypes.POINT,
-            coordinates: []
+const DrawText = {
+    onSetup(opts) {
+        const properties = (opts && opts.properties) || {}
+        const point = this.newFeature({
+            type: Constants.geojsonTypes.FEATURE,
+            properties: {...properties},
+            geometry: {
+                type: Constants.geojsonTypes.POINT,
+                coordinates: []
+            }
+        });
+
+        this.addFeature(point);
+        this.clearSelectedFeatures();
+        this.updateUIClasses({mouse: Constants.cursors.ADD});
+        this.activateUIButton(Constants.types.POINT);
+        this.setActionableState({trash: true});
+
+        // Initialize isInteractionAllowed to true to allow the first click
+        return {
+            point,
+            isInteractionAllowed: document.getElementById("mapbox-gl-draw-text-form-container") === null
+        };
+    },
+
+    onTap(state, e) {
+        this.onClick(state, e); // Redirect tap event to the onClick handler
+    },
+
+    onClick(state, e) {
+        console.log(state.isInteractionAllowed)
+        if (!state.isInteractionAllowed) {
+            return; // Do nothing if interaction isn't allowed
         }
-    });
 
-    this.addFeature(point);
+        state.isInteractionAllowed = false; // Prevent new interactions until this one is complete
+        const map = this.map;
+        this.updateUIClasses({mouse: Constants.cursors.MOVE});
+        state.point.updateCoordinate('', e.lngLat.lng, e.lngLat.lat);
 
-    this.clearSelectedFeatures();
-    this.updateUIClasses({ mouse: Constants.cursors.ADD });
-    this.activateUIButton(Constants.types.POINT);
-
-    this.setActionableState({
-        trash: true
-    });
-
-    return { point };
-};
-
-DrawText.stopDrawingAndRemove = function(state) {
-    this.deleteFeature([state.point.id], { silent: true });
-    this.changeMode(Constants.modes.SIMPLE_SELECT);
-};
-
-DrawText.onTap = DrawText.onClick = function(state, e) {
-    const map = this.map;
-    this.updateUIClasses({ mouse: Constants.cursors.MOVE });
-    state.point.updateCoordinate('', e.lngLat.lng, e.lngLat.lat);
-
-    // First, try to remove any existing form container
-    const existingContainer = document.getElementById("mapbox-gl-draw-text-form-container");
-    if (existingContainer) {
-        existingContainer.remove(); // Remove the existing form if it's there
-    }
-    const pixels = map.project(e.lngLat);
-    const formContainer = document.createElement("div");
-    formContainer.id = "mapbox-gl-draw-text-form-container"; // Unique identifier for the form container
-    formContainer.style.position = "absolute";
-    formContainer.style.left = `${pixels.x}px`;
-    formContainer.style.top = `${pixels.y}px`;
-    formContainer.style.zIndex = "10";
-    formContainer.style.display = "block";
-
-    const form = document.createElement("form");
-    form.id = "text-input-form";
-
-    const input = document.createElement("input");
-    input.type = "text";
-    input.id = "text-input";
-    input.placeholder = "Enter text here";
-    input.classList.add("mui-text-field");
-
-    const button = document.createElement("button");
-    button.type = "submit";
-    button.innerText = "Submit";
-    button.classList.add("mui-btn");
-
-    form.appendChild(input);
-    form.appendChild(button);
-    formContainer.appendChild(form);
-
-    map.getContainer().appendChild(formContainer);
-
-    form.onsubmit = function(event) {
-        event.preventDefault();
-        const text = input.value.trim();
-        if (text) {
-            state.point.properties.text = text;
-            // Clean up the form after submission
-            map.getContainer().removeChild(formContainer);
+        // Remove any existing form container
+        const existingContainer = document.getElementById("mapbox-gl-draw-text-form-container");
+        if (existingContainer) {
+            existingContainer.remove();
         }
-    };
 
-    this.map.fire(Constants.events.CREATE, {
-        features: [state.point.toGeoJSON()]
-    });
-    this.changeMode(Constants.modes.SIMPLE_SELECT, { featureIds: [state.point.id] });
-};
+        // Create and style the form container
+        const pixels = map.project(e.lngLat);
+        const formContainer = document.createElement("div");
+        formContainer.id = "mapbox-gl-draw-text-form-container";
+        Object.assign(formContainer.style, {
+            position: "absolute",
+            left: `${pixels.x}px`,
+            top: `${pixels.y}px`,
+            zIndex: "10",
+            display: "block"
+        });
 
-DrawText.onStop = function(state) {
-    this.activateUIButton();
-    if (!state.point.getCoordinate().length) {
-        this.deleteFeature([state.point.id], { silent: true });
-    }
-};
+        // Create form elements: input and submit button
+        const form = document.createElement("form");
+        form.id = "text-input-form";
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = "text-input";
+        input.placeholder = "Enter text here";
+        input.classList.add("mui-text-field");
+        const button = document.createElement("button");
+        button.type = "submit";
+        button.innerText = "Submit";
+        button.classList.add("mui-btn");
 
-DrawText.toDisplayFeatures = function(state, geojson, display) {
-    // Never render the point we're drawing
-    const isActivePoint = geojson.properties.id === state.point.id;
-    geojson.properties.active = (isActivePoint) ? Constants.activeStates.ACTIVE : Constants.activeStates.INACTIVE;
-    if (!isActivePoint) return display(geojson);
-};
+        // Append elements to form and then to map container
+        form.appendChild(input);
+        form.appendChild(button);
+        formContainer.appendChild(form);
+        map.getContainer().appendChild(formContainer);
 
-DrawText.onTrash = DrawText.stopDrawingAndRemove;
+        this.changeMode(Constants.modes.SIMPLE_SELECT, {featureIds: [state.point.id]});
 
-DrawText.onKeyUp = function(state, e) {
-    if (CommonSelectors.isEscapeKey(e) || CommonSelectors.isEnterKey(e)) {
-        return this.stopDrawingAndRemove(state, e);
-    }
+        // Handle form submission
+        form.onsubmit = (event) => {
+            event.preventDefault();
+            const text = input.value.trim();
+            if (text) {
+                state.point.properties.text = capitalizeFirstLetter(text); // Update point properties with text
+                this.finishInteraction(state, formContainer); // Clean up and allow new interactions
+                this.map.fire(Constants.events.CREATE, {
+                    features: [state.point.toGeoJSON()]
+                });
+                this.changeMode(Constants.modes.SIMPLE_SELECT, {featureIds: [state.point.id]});
+            }
+        };
+    },
+
+    finishInteraction(state, formContainer) {
+        // Remove the form container from the map
+        this.map.getContainer().removeChild(formContainer);
+        // Allow new interactions
+        state.isInteractionAllowed = true;
+        // Change mode or do additional cleanup as needed
+    },
+
+    stopDrawingAndRemove(state) {
+        this.deleteFeature([state.point.id], {silent: true});
+        this.changeMode(Constants.modes.SIMPLE_SELECT);
+    },
+
+    onKeyUp(state, e) {
+        if (CommonSelectors.isEscapeKey(e) || CommonSelectors.isEnterKey(e)) {
+            this.stopDrawingAndRemove(state, e);
+        }
+    },
+
+    onStop(state) {
+        this.activateUIButton();
+        if (!state.point.getCoordinate().length) {
+            this.deleteFeature([state.point.id], {silent: true});
+        }
+    },
+
+    toDisplayFeatures(state, geojson, display) {
+        const isActivePoint = geojson.properties.id === state.point.id;
+        geojson.properties.active = (isActivePoint) ? Constants.activeStates.ACTIVE : Constants.activeStates.INACTIVE;
+        if (!isActivePoint) return display(geojson);
+    },
+
+    onTrash() {
+        this.stopDrawingAndRemove(...arguments);
+    },
 };
 
 export default DrawText;

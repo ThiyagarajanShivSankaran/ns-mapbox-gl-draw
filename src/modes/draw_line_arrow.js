@@ -1,7 +1,7 @@
 import draw_line_string from './draw_line_string';
 import * as Constants from "../constants";
 import createVertex from "../lib/create_vertex";
-import createArrowVertex from "../lib/create_arrow_vertex";
+import create_additional_vertex from "../lib/create_additional_vertex";
 
 const DrawLineArrow = { ...draw_line_string };
 DrawLineArrow.onKeyUp = function (state, e) {
@@ -26,7 +26,7 @@ DrawLineArrow.toDisplayFeatures = function (state, geojson, display) {
 
     display(geojson);
     const { coordinates } = geojson.geometry;
-    display(createArrowVertex(
+    display(create_additional_vertex(
         state.line.id,
         state.currentVertexPosition,
         coordinates,

@@ -3,10 +3,11 @@ import * as Constants from '../constants';
 
 const DrawPoint = {};
 
-DrawPoint.onSetup = function() {
+DrawPoint.onSetup = function(opts) {
+  const properties = (opts && opts.properties) || {}
   const point = this.newFeature({
     type: Constants.geojsonTypes.FEATURE,
-    properties: {},
+    properties: {...properties},
     geometry: {
       type: Constants.geojsonTypes.POINT,
       coordinates: []
@@ -23,7 +24,7 @@ DrawPoint.onSetup = function() {
     trash: true
   });
 
-  return { point };
+  return { point, opts: opts || {} };
 };
 
 DrawPoint.stopDrawingAndRemove = function(state) {
@@ -34,6 +35,9 @@ DrawPoint.stopDrawingAndRemove = function(state) {
 DrawPoint.onTap = DrawPoint.onClick = function(state, e) {
   this.updateUIClasses({ mouse: Constants.cursors.MOVE });
   state.point.updateCoordinate('', e.lngLat.lng, e.lngLat.lat);
+  if (state.opts.measurement) {
+    state.point.properties.distance = `${e.lngLat.lng}, ${e.lngLat.lat}`; // Updating point distance
+  }
   this.map.fire(Constants.events.CREATE, {
     features: [state.point.toGeoJSON()]
   });
