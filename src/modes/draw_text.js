@@ -31,7 +31,7 @@ DrawText.stopDrawingAndRemove = function(state) {
     this.changeMode(Constants.modes.SIMPLE_SELECT);
 };
 
-DrawText.onTap = DrawText.onClick = function(state, e) {
+DrawText.onTap = DrawText.onClick = function (state, e) {
     const map = this.map;
     this.updateUIClasses({ mouse: Constants.cursors.MOVE });
     state.point.updateCoordinate('', e.lngLat.lng, e.lngLat.lat);
@@ -41,6 +41,7 @@ DrawText.onTap = DrawText.onClick = function(state, e) {
     if (existingContainer) {
         existingContainer.remove(); // Remove the existing form if it's there
     }
+
     const pixels = map.project(e.lngLat);
     const formContainer = document.createElement("div");
     formContainer.id = "mapbox-gl-draw-text-form-container"; // Unique identifier for the form container
@@ -53,26 +54,28 @@ DrawText.onTap = DrawText.onClick = function(state, e) {
     const form = document.createElement("form");
     form.id = "text-input-form";
 
-    const input = document.createElement("input");
-    input.type = "text";
-    input.id = "text-input";
-    input.placeholder = "Enter text here";
-    input.classList.add("mui-text-field");
+    // Create a textarea for multi-line input
+    const textarea = document.createElement("textarea");
+    textarea.id = "text-input";
+    textarea.placeholder = "Enter text here";
+    textarea.rows = 4; // Adjust for desired size
+    textarea.cols = 30; // Adjust for desired size
+    textarea.classList.add("mui-textarea");
 
     const button = document.createElement("button");
     button.type = "submit";
     button.innerText = "Submit";
     button.classList.add("mui-btn");
 
-    form.appendChild(input);
+    form.appendChild(textarea);
     form.appendChild(button);
     formContainer.appendChild(form);
 
     map.getContainer().appendChild(formContainer);
 
-    form.onsubmit = function(event) {
+    form.onsubmit = function (event) {
         event.preventDefault();
-        const text = input.value.trim();
+        const text = textarea.value.trim();
         if (text) {
             state.point.properties.text = text;
             // Clean up the form after submission
@@ -81,7 +84,7 @@ DrawText.onTap = DrawText.onClick = function(state, e) {
     };
 
     this.map.fire(Constants.events.CREATE, {
-        features: [state.point.toGeoJSON()]
+        features: [state.point.toGeoJSON()],
     });
     this.changeMode(Constants.modes.SIMPLE_SELECT, { featureIds: [state.point.id] });
 };
